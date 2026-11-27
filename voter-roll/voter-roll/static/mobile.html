@@ -59,6 +59,7 @@ button.sm{background:#fff;border:1px solid var(--line)}
   <button class="pri" id="vlog" type="button">Log in</button> <span id="volmsg" class="err"></span></div>
  <div id="vhome" class="hide"><div class="panel">
   <h3 id="vname">Volunteer</h3><p id="vwho" class="note"></p>
+  <div id="vdash"></div>
   <div id="vbooths"></div><div id="vroll"></div>
   <button class="sm" id="vout" type="button">Log out</button>
  </div></div>
@@ -68,6 +69,18 @@ button.sm{background:#fff;border:1px solid var(--line)}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MOODS=[['','Not marked'],['favour','Favour'],['unfavour','Unfavour'],['neutral','Neutral'],['undecided','Undecided'],['not_met','Not met']];
+function volunteerTiles(vol){
+ const ids={}; (vol.booths||[]).forEach(b=>{ids[b.id]=1});
+ const rows=((pack&&pack.voters)||[]).filter(v=>ids[v.station_id]);
+ const s={booths:(vol.booths||[]).length,voters:rows.length,mobile_mapped:0,favour:0,unfavour:0,neutral:0,undecided:0,not_met:rows.length};
+ rows.forEach(v=>{
+  if((v.mobile||'').trim())s.mobile_mapped++;
+  if(v.mood&&v.mood!=='not_met'&&s[v.mood]!==undefined){s[v.mood]++; s.not_met--}
+ });
+ if(s.not_met<0)s.not_met=0;
+ const tiles=[['booths','Total booths assigned'],['voters','Total voters'],['mobile_mapped','Total mobile numbers'],['favour','Favour'],['unfavour','Unfavour'],['undecided','Undecided'],['neutral','Neutral'],['not_met','Not yet meet']];
+ return '<div class="stat">'+tiles.map(([k,lab])=>`<div class="mood-${k}"><strong>${s[k]||0}</strong>${lab}</div>`).join('')+'</div>';
+}
 function serverBase(){
  let base='';
  try{if(window.AndroidHost)base=AndroidHost.server()||''}catch(e){}
@@ -164,6 +177,7 @@ $('vlog').onclick=()=>{
  if(!vol){$('volmsg').textContent='This mobile number is not in the downloaded data';return}
  $('vlogin').classList.add('hide'); $('vhome').classList.remove('hide');
  $('vname').textContent=vol.name; $('vwho').textContent=vol.mobile;
+ $('vdash').innerHTML=volunteerTiles(vol);
  $('vbooths').innerHTML='<div class="booths">'+vol.booths.map((b,i)=>`<button type="button" onclick="openBooth(${i})"><b>${esc(b.number)}</b><br>${esc(b.name||'')}</button>`).join('')+'</div>';
  $('vroll').innerHTML='';
 };
@@ -203,7 +217,7 @@ async function saveMood(i,n){
  const v=boothRows.length?boothRows[n]:rows[n];
  if(!v)return;
  v.mobile=$('vmob'+n).value.trim(); v.mood=$('vmood'+n).value;
- savePack(pack);
+ savePack(pack); $('vdash').innerHTML=volunteerTiles(vol);
  const item={code:localStorage.getItem('vr-code'),volunteer_mobile:vol.mobile,voter_id:v.id,mobile:v.mobile,mood:v.mood};
  try{
   const r=await fetch(serverBase()+'/api/mobile/marks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});

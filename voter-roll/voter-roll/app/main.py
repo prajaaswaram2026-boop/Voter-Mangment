@@ -1024,7 +1024,8 @@ def _volunteer_profile(db: Session, mobile: str):
         if st:
             booths.append({"id": st.id, "part_number": st.part_number, "number": st.number or st.part_number,
                            "name": st.name, "division": divs.get(st.division_id, "")})
-    return {"name": v.name, "mobile": otp.mask(v.mobile), "booths": booths}
+    return {"name": v.name, "mobile": otp.mask(v.mobile), "booths": booths,
+            "summary": _volunteer_summary(db, booths)}
 
 
 @app.post("/api/volunteer/login")
@@ -1104,6 +1105,36 @@ def _set_not_met(counts, total):
     """Not met starts as every voter, then drops by one for each other mood."""
     marked = sum(counts[mood] for mood in MOODS if mood != "not_met")
     counts["not_met"] = max(total - marked, 0)
+
+
+def _volunteer_summary(db: Session, booths):
+    """Counts for the booths assigned to one volunteer."""
+    seen = set()
+    voters = []
+    for booth in booths:
+        st = db.get(PollingStation, booth["id"])
+        if not st:
+            continue
+        for voter in _booth_rows(db, st):
+            if voter.id in seen:
+                continue
+            seen.add(voter.id)
+            voters.append(voter)
+    marks = _marks_for(db, [v.id for v in voters])
+    moods = {mood: 0 for mood in MOODS}
+    mobiles = 0
+    for voter in voters:
+        mark = marks.get(voter.id)
+        if not mark:
+            continue
+        if (mark.mobile or "").strip():
+            mobiles += 1
+        if mark.mood in moods:
+            moods[mark.mood] += 1
+    _set_not_met(moods, len(voters))
+    return {"booths": len(booths), "voters": len(voters), "mobile_mapped": mobiles,
+            "favour": moods["favour"], "unfavour": moods["unfavour"], "neutral": moods["neutral"],
+            "undecided": moods["undecided"], "not_met": moods["not_met"]}
 
 
 @app.get("/api/volunteer/booths/{sid}/voters")

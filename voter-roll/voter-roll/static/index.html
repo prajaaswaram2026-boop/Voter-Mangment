@@ -114,6 +114,7 @@ html.phone .desk-wa{display:none}
   <div class="panel">
    <div class="sharebar"><h3 id="vname">Volunteer</h3><button id="vout" type="button">Log out</button></div>
    <p id="vwho" class="note"></p>
+   <div id="vdash"></div>
    <h4 style="margin:12px 0 4px">Your polling stations</h4>
    <div id="vbooths"></div>
    <div id="vroll"></div>
@@ -154,8 +155,12 @@ function showPage(name){$('citizen').classList.toggle('hide',name!='citizen');$(
  const admin=$('admin');if(admin)admin.classList.toggle('hide',name!='admin');
  if(name=='admin'&&token&&admin)showDash()}
 let volMe=null;
+function volunteerTiles(s){
+ const tiles=[['booths','Total booths assigned',''],['voters','Total voters',''],['mobile_mapped','Total mobile numbers',''],['favour','Favour','mood-favour'],['unfavour','Unfavour','mood-unfavour'],['undecided','Undecided','mood-undecided'],['neutral','Neutral','mood-neutral'],['not_met','Not yet meet','mood-not_met']];
+ return '<div class="stat">'+tiles.map(([k,lab,cls])=>`<div class="${cls}"><strong>${s[k]||0}</strong>${lab}</div>`).join('')+'</div>';
+}
 function showVolunteer(me){volMe=me;$('vlogin').classList.add('hide');$('vhome').classList.remove('hide');
- $('vname').textContent=me.name;$('vwho').textContent=me.mobile;$('vroll').innerHTML='';
+ $('vname').textContent=me.name;$('vwho').textContent=me.mobile;$('vdash').innerHTML=volunteerTiles(me.summary||{});$('vroll').innerHTML='';
  const booths=me.booths||[];
  $('vbooths').innerHTML=booths.length?'<div class="booths">'+booths.map((b,i)=>`<button type="button" onclick="openBooth(${i})"><b>${esc(b.number||b.part_number)}</b><span>${esc(b.name||'Polling station')}</span></button>`).join('')+'</div>':'<p class="note">No booths assigned yet.</p>';}
 let volHits=[],volBooth=-1,volQuery='';
@@ -218,6 +223,7 @@ async function saveMood(i,n){const v=volHits[n];const b=volMe.booths[i];
  const box=$('vmob'+n);
  const mobile=box?box.value:(v.mobile||'');
  try{await volApi('/api/volunteer/booths/'+b.id+'/voters/'+v.id,{method:'PUT',json:{mobile,mood:$('vmood'+n).value}});
+  const me=await volApi('/api/volunteer/me'); volMe=me; $('vdash').innerHTML=volunteerTiles(me.summary||{});
   openBooth(i,1);
  }catch(e){if($('vmark'+n)){$('vmark'+n).textContent=e.message;$('vmark'+n).className='err'}}}
 function volOut(){vtok='';localStorage.removeItem('vtok');volMe=null;$('vhome').classList.add('hide');$('vlogin').classList.remove('hide');if($('vroll'))$('vroll').innerHTML='';}
