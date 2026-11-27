@@ -194,6 +194,10 @@ def test_volunteer_booth_assignment():
         assert summary["favour"] == 1 and summary["mobile_mapped"] >= 1
         assert summary["not_met"] == summary["voters"] - summary["favour"] - summary["unfavour"] - summary["neutral"] - summary["undecided"]
         assert c.get("/api/admin/voter-mood", headers=vh).status_code == 401
+        summary = c.get("/api/volunteer/me", headers=vh).json()["summary"]
+        assert summary["booths"] == 1 and summary["voters"] == 1 and summary["mobile_mapped"] == 1
+        assert summary["favour"] == 1 and summary["unfavour"] == 0 and summary["undecided"] == 0
+        assert summary["not_met"] == summary["voters"] - summary["favour"] - summary["unfavour"] - summary["neutral"] - summary["undecided"]
         again = c.get(f"/api/volunteer/booths/{st['id']}/voters", headers=vh).json()
         assert again["report"][0]["mood"] == "favour"
         assert again["counts"]["not_met"] == again["total"] - 1

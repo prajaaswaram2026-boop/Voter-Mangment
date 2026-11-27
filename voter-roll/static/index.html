@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Voter Roll Verification</title>
+<script>if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent))document.documentElement.classList.add('phone');</script>
 <style>
 :root{--blue:#1a3d7c;--bg:#f4f6fa;--line:#d9dee8}
 *{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,sans-serif;background:var(--bg);color:#1c2430}
@@ -21,7 +22,7 @@ a.wa,button.wa{background:#128C7E;color:#fff;border:0;padding:10px 14px;border-r
 .sharebar h3{margin:0}
 label.check{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px}
 label.check input{width:auto;margin:4px 0 0}
-@media (max-width:640px){
+@media (max-width:900px), (pointer: coarse) {
  .card{grid-template-columns:1fr}
  .voter .line{grid-template-columns:1fr;gap:2px;padding:8px 0}
  .actions{display:grid}
@@ -31,7 +32,6 @@ label.check input{width:auto;margin:4px 0 0}
  header h1{font-size:16px;width:100%}
  header>div{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
  header>div button{width:100%;padding:10px 8px}
- #nav-cit{grid-column:1 / -1}
  main{margin:8px auto;padding:0 8px}
  .panel{padding:12px}
  #citizen .tabs{display:grid;grid-template-columns:1fr 1fr}
@@ -45,14 +45,17 @@ label.check input{width:auto;margin:4px 0 0}
 button.sm{padding:4px 9px;font-size:13px}
 .card{border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:8px;padding:12px;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 14px}
 .card b{display:block;font-size:12px;color:#5a6577;font-weight:600}
-.voter{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:8px;padding:6px 16px 14px;margin:10px 0}
-.voter .line{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:6px 18px;padding:9px 0;border-bottom:1px solid #eef1f6;align-items:baseline}
-.voter .line span{color:#5a6577;font-size:13px;font-weight:600}
-.voter .line strong{font-weight:650;overflow-wrap:anywhere}
+.voter{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:8px;padding:8px 12px 14px;margin:10px 0}
+.voter .line{display:grid;grid-template-columns:minmax(130px,180px) 1fr;gap:8px 12px;align-items:center;margin:6px 0;padding:8px 10px;border-radius:8px;border:0}
+.voter .line span{color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em;border-radius:6px;padding:4px 8px;width:fit-content}
+.voter .line strong{color:#10245a;font-size:17px;font-weight:700;overflow-wrap:anywhere}
+.voter .line,.voter .line.f-epic,.voter .line.f-rel,.voter .line.f-age,.voter .line.f-addr,.voter .line.f-mob,.voter .line.f-mob.missing{background:#f7f8fb}
+.voter .line span,.voter .line.f-epic span,.voter .line.f-rel span,.voter .line.f-age span,.voter .line.f-addr span,.voter .line.f-mob span,.voter .line.f-mob.missing span{background:transparent;color:#5c6b7a}
+.voter .line strong,.voter .line.f-mob.missing strong{color:#10245a}
 .voter .actions{margin-top:12px}
-.voter h3{margin:10px 0 4px;font-size:22px;color:#10245a}
-.voter.mood-favour{border-left-color:#1b7f3a;background:#f3fbf5}.voter.mood-favour h3,.mood-favour{color:#1b7f3a}
-.voter.mood-unfavour{border-left-color:#c62828;background:#fff5f5}.voter.mood-unfavour h3,.mood-unfavour{color:#c62828}
+.voter h3,.voter.mood-favour h3,.voter.mood-unfavour h3,.voter.mood-neutral h3,.voter.mood-undecided h3,.voter.mood-not_met h3{margin:4px 0 8px;font-size:22px;color:#fff;background:#10245a;padding:10px 12px;border-radius:8px}
+.voter.mood-favour{border-left-color:#1b7f3a}.mood-favour{color:#1b7f3a}
+.voter.mood-unfavour{border-left-color:#c62828}.mood-unfavour{color:#c62828}
 .voter.mood-neutral{border-left-color:#5c6b7a}.mood-neutral{color:#5c6b7a}
 .voter.mood-undecided{border-left-color:#b8860b}.mood-undecided{color:#b8860b}
 .voter.mood-not_met{border-left-color:#8a6a2f}.mood-not_met{color:#8a6a2f}
@@ -65,6 +68,20 @@ button.sm{padding:4px 9px;font-size:13px}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 .stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.stat div{background:#eef2fa;padding:12px;border-radius:8px}.stat strong{font-size:22px;display:block}
 .hide{display:none}
+html.phone header{padding:12px;align-items:stretch}
+html.phone header h1{font-size:16px;width:100%}
+html.phone header>div{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+html.phone header>div button{width:100%;min-height:44px;padding:10px 8px}
+html.phone main{margin:8px auto;padding:0 8px}
+html.phone .panel{padding:12px}
+html.phone .actions{display:grid}
+html.phone button.pri,html.phone a.wa,html.phone button.wa,html.phone button.sm{width:100%;padding:12px 14px;font-size:16px}
+html.phone input,html.phone select{font-size:16px}
+html.phone .card,html.phone .voter .line{grid-template-columns:1fr}
+html.phone #citizen .tabs{display:grid;grid-template-columns:1fr 1fr}
+html.phone #citizen .tabs button,html.phone .booths button{width:100%;min-height:48px}
+html.phone .stat{grid-template-columns:1fr 1fr}
+html.phone .desk-wa{display:none}
 </style></head><body>
 <header><h1>Voter Roll Verification</h1><div><button id="nav-cit">Citizen search</button> <button id="nav-vol">Volunteers</button> <button id="nav-adm">Admin</button></div></header>
 <main>
@@ -73,7 +90,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:6px;borde
  <img class="banner" src="/static/banner.jpg" alt="Vasireddy Naresh, State Official Spokesperson, Congress Party, 127-Manikonda Division">
  <div class="panel">
   <div class="sharebar"><h3>Find your voter details</h3></div>
-  <p class="note">Search by EPIC or name. WhatsApp shares only the voter details.</p>
+  <p class="note">Search by EPIC or name.</p>
   <div class="tabs"><button id="t-epic" type="button">Search by EPIC</button><button id="t-name" class="on" type="button">Search by name</button></div>
   <div id="f-epic" class="hide"><label>EPIC number</label><input id="epic" placeholder="ABC1234567" maxlength="10" autocapitalize="characters"></div>
   <div id="f-name">
@@ -97,6 +114,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:6px;borde
   <div class="panel">
    <div class="sharebar"><h3 id="vname">Volunteer</h3><button id="vout" type="button">Log out</button></div>
    <p id="vwho" class="note"></p>
+   <div id="vdash"></div>
    <h4 style="margin:12px 0 4px">Your polling stations</h4>
    <div id="vbooths"></div>
    <div id="vroll"></div>
@@ -116,9 +134,14 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:6px;borde
 </main>
 <script>
 const $=id=>document.getElementById(id);
-if(location.pathname==='/m'){const a=$('nav-adm');if(a)a.remove();const s=$('admin');if(s)s.remove();}
-const sid=crypto.randomUUID().slice(0,32);let token=localStorage.getItem('tok')||'',vtok=localStorage.getItem('vtok')||'',page=1;
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const phoneView=location.pathname==='/m'||document.documentElement.classList.contains('phone')||window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+if(phoneView){const a=$('nav-adm');if(a)a.remove();const s=$('admin');if(s)s.remove();}
+function freshId(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID().replace(/-/g,'').slice(0,32)}catch(e){}
+ let s='';for(let i=0;i<32;i++)s+='0123456789abcdef'[Math.floor(Math.random()*16)];return s}
+const sid=freshId();
+let token='',vtok='',page=1;
+try{token=localStorage.getItem('tok')||'';vtok=localStorage.getItem('vtok')||''}catch(e){}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(url,opt={}){opt.headers=Object.assign({},opt.headers);if(token)opt.headers.Authorization='Bearer '+token;
  if(opt.json){opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(opt.json);}
  const r=await fetch(url,opt);const t=await r.json().catch(()=>({}));
@@ -128,11 +151,16 @@ async function volApi(url,opt={}){opt.headers=Object.assign({'Authorization':'Be
  const r=await fetch(url,opt);const t=await r.json().catch(()=>({}));
  if(r.status===401){volOut();throw new Error(typeof t.detail==='string'?t.detail:'Login required')}
  if(!r.ok)throw new Error(typeof t.detail==='string'?t.detail:'Request failed ('+r.status+')');return t;}
-function showPage(name){$('citizen').classList.toggle('hide',name!='citizen');$('volunteer').classList.toggle('hide',name!='volunteer');$('admin').classList.toggle('hide',name!='admin');
- if(name=='admin'&&token)showDash()}
+function showPage(name){$('citizen').classList.toggle('hide',name!='citizen');$('volunteer').classList.toggle('hide',name!='volunteer');
+ const admin=$('admin');if(admin)admin.classList.toggle('hide',name!='admin');
+ if(name=='admin'&&token&&admin)showDash()}
 let volMe=null;
+function volunteerTiles(s){
+ const tiles=[['booths','Total booths assigned',''],['voters','Total voters',''],['mobile_mapped','Total mobile numbers',''],['favour','Favour','mood-favour'],['unfavour','Unfavour','mood-unfavour'],['undecided','Undecided','mood-undecided'],['neutral','Neutral','mood-neutral'],['not_met','Not yet meet','mood-not_met']];
+ return '<div class="stat">'+tiles.map(([k,lab,cls])=>`<div class="${cls}"><strong>${s[k]||0}</strong>${lab}</div>`).join('')+'</div>';
+}
 function showVolunteer(me){volMe=me;$('vlogin').classList.add('hide');$('vhome').classList.remove('hide');
- $('vname').textContent=me.name;$('vwho').textContent=me.mobile;$('vroll').innerHTML='';
+ $('vname').textContent=me.name;$('vwho').textContent=me.mobile;$('vdash').innerHTML=volunteerTiles(me.summary||{});$('vroll').innerHTML='';
  const booths=me.booths||[];
  $('vbooths').innerHTML=booths.length?'<div class="booths">'+booths.map((b,i)=>`<button type="button" onclick="openBooth(${i})"><b>${esc(b.number||b.part_number)}</b><span>${esc(b.name||'Polling station')}</span></button>`).join('')+'</div>':'<p class="note">No booths assigned yet.</p>';}
 let volHits=[],volBooth=-1,volQuery='';
@@ -144,7 +172,7 @@ async function openBooth(i,p=1){volBooth=i;const b=volMe.booths[i];
  $('vroll').innerHTML='<p class="note">Loading...</p>';
  try{const r=await volApi('/api/volunteer/booths/'+b.id+'/voters?page='+p+'&q='+encodeURIComponent(volQuery));
   volHits=r.voters||[];
-  const field=(k,val)=>`<div class="line"><span>${k}</span><strong>${esc(val||'—')}</strong></div>`;
+  const field=(k,val,cls)=>`<div class="line ${cls}"><span>${k}</span><strong>${esc(val||'—')}</strong></div>`;
   const counts=r.counts||{};
   let h=`<h4 style="margin:16px 0 8px">${esc(r.station.number)}${r.station.name?' · '+esc(r.station.name):''} (${r.total})</h4>`;
   h+=`<div class="stat">${MOODS.filter(x=>x[0]).map(([k,lab])=>`<div class="mood-${k}"><strong>${counts[k]||0}</strong>${lab}</div>`).join('')}</div>`;
@@ -154,10 +182,11 @@ async function openBooth(i,p=1){volBooth=i;const b=volMe.booths[i];
    const mobile=(v.mobile||'').trim();
    const digits=mobile.replace(/\D/g,'');
    const full=!!slipPhone(v);
-   const share=`<div class="actions"><button class="wa sm" type="button" onclick="shareSlip(${n})">WhatsApp</button>${full?`<a class="sm" href="${smsLink(v)}">SMS</a>`:''}</div>`;
-   const mobileFix=!mobile?`<label>Collect mobile number<input id="vmob${n}" inputmode="numeric" maxlength="14" placeholder="98XXXXXXXX"></label>`:(full?'':`<p class="note">This number has ${digits.length} digits, so WhatsApp cannot open this chat. Save the mood now, or type the full 10-digit number here.</p><label>Correct mobile<input id="vmob${n}" value="${esc(mobile)}" inputmode="numeric" maxlength="14"></label>`);
-   h+=`<article class="voter mood-${esc(v.mood||'none')}"><h3>${esc(v.voter_name||'—')}</h3>${field('EPIC no',v.epic_number)}${field('Relative name',v.relative_name)}${field('Age',v.age)}${field('Address',v.address)}
-    <div class="line"><span>Mobile</span><strong class="${mobile?'':'err'}">${mobile?esc(mobile):'Not available'}</strong></div>
+   const onPhone=document.documentElement.classList.contains('phone');
+   const share=onPhone?'':`<div class="actions"><button class="wa sm" type="button" onclick="shareSlip(${n})">WhatsApp</button>${full?`<a class="sm" href="${smsLink(v)}">SMS</a>`:''}</div>`;
+   const mobileFix=!mobile?`<label>Collect mobile number<input id="vmob${n}" inputmode="numeric" maxlength="14" placeholder="98XXXXXXXX"></label>`:(full?'':`<p class="note">${onPhone?'This number has '+digits.length+' digits. Type the full 10-digit number here.':'This number has '+digits.length+' digits, so WhatsApp cannot open this chat. Save the mood now, or type the full 10-digit number here.'}</p><label>Correct mobile<input id="vmob${n}" value="${esc(mobile)}" inputmode="numeric" maxlength="14"></label>`);
+   h+=`<article class="voter mood-${esc(v.mood||'none')}"><h3>${esc(v.voter_name||'—')}</h3>${field('EPIC no',v.epic_number,'f-epic')}${field('Relative name',v.relative_name,'f-rel')}${field('Age',v.age,'f-age')}${field('Address',v.address,'f-addr')}
+    <div class="line f-mob${mobile?'':' missing'}"><span>Mobile</span><strong>${mobile?esc(mobile):'Not available'}</strong></div>
     ${mobileFix}
     <label>Electoral Mood<select id="vmood${n}">${MOODS.map(([k,lab])=>`<option value="${k}" ${v.mood===k?'selected':''}>${lab}</option>`).join('')}</select></label>
     <div class="actions"><button class="pri sm" type="button" onclick="saveMood(${i},${n})">Save</button> <span id="vmark${n}" class="ok"></span></div>
@@ -169,11 +198,12 @@ async function openBooth(i,p=1){volBooth=i;const b=volMe.booths[i];
   $('vq').addEventListener('keydown',ev=>{if(ev.key==='Enter')openBooth(i,1)});
  }catch(e){$('vroll').innerHTML='<p class="err">'+esc(e.message)+'</p>'}}
 function voterShareText(v){
- return [v.voter_name,'EPIC: '+(v.epic_number||'—'),'Relative: '+(v.relative_name||'—'),'Age: '+(v.age??'—'),'Address: '+(v.address||'—'),'Polling station: '+[v.booth_no,v.polling_station].filter(Boolean).join(' ')].join('\n');
+ return [v.voter_name,'EPIC: '+(v.epic_number||'—'),'Relative: '+(v.relative_name||'—'),'Age: '+(v.age==null?'—':v.age),'Address: '+(v.address||'—'),'Polling station: '+[v.booth_no,v.polling_station].filter(Boolean).join(' ')].join('\n');
 }
 function slipPhone(v){let d=String(v.mobile||'').replace(/\D/g,'');if(d.length===12&&d.startsWith('91'))d=d.slice(2);if(d.length===11&&d.startsWith('0'))d=d.slice(1);return d.length===10?d:''}
 function smsLink(v){return 'sms:+91'+slipPhone(v)+'?body='+encodeURIComponent(voterShareText(v))}
 async function shareSlip(n){
+ if(document.documentElement.classList.contains('phone'))return;
  const v=volHits[n]; if(!v)return;
  const phone=slipPhone(v);
  const chat=phone?window.open('','_blank'):null;
@@ -193,13 +223,14 @@ async function saveMood(i,n){const v=volHits[n];const b=volMe.booths[i];
  const box=$('vmob'+n);
  const mobile=box?box.value:(v.mobile||'');
  try{await volApi('/api/volunteer/booths/'+b.id+'/voters/'+v.id,{method:'PUT',json:{mobile,mood:$('vmood'+n).value}});
+  const me=await volApi('/api/volunteer/me'); volMe=me; $('vdash').innerHTML=volunteerTiles(me.summary||{});
   openBooth(i,1);
  }catch(e){if($('vmark'+n)){$('vmark'+n).textContent=e.message;$('vmark'+n).className='err'}}}
 function volOut(){vtok='';localStorage.removeItem('vtok');volMe=null;$('vhome').classList.add('hide');$('vlogin').classList.remove('hide');if($('vroll'))$('vroll').innerHTML='';}
 /* ---- citizen ---- */
 $('nav-cit').onclick=()=>showPage('citizen');
 $('nav-vol').onclick=()=>showPage('volunteer');
-$('nav-adm').onclick=()=>showPage('admin');
+if($('nav-adm'))$('nav-adm').onclick=()=>showPage('admin');
 let mode='name';
 function setMode(m){mode=m;$('f-epic').classList.toggle('hide',m!='epic');$('f-name').classList.toggle('hide',m!='name');
  $('t-epic').classList.toggle('on',m=='epic');$('t-name').classList.toggle('on',m=='name')}
@@ -210,9 +241,9 @@ if(startQ.get('name')){$('name').value=startQ.get('name')}
 if(startQ.get('epic')){setMode('epic');$('epic').value=startQ.get('epic')}
 const template=new Image();template.src='/static/voter-card.jpg';
 function loadTemplate(){if(template.complete&&template.naturalWidth)return Promise.resolve(template);return new Promise((ok,bad)=>{template.onload=()=>ok(template);template.onerror=bad})}
-function fit(ctx,text,max){let s=String(text??'—');while(s.length>1&&ctx.measureText(s).width>max)s=s.slice(0,-2)+'…';return s}
+function fit(ctx,text,max){let s=String(text==null?'—':text);while(s.length>1&&ctx.measureText(s).width>max)s=s.slice(0,-2)+'…';return s}
 function wrapTwo(ctx,text,maxW){
- const raw=String(text??'').trim()||'—';
+ const raw=String(text==null?'':text).trim()||'—';
  for(let size=20;size>=12;size--){
   ctx.font=`700 ${size}px "Segoe UI","Nirmala UI",sans-serif`;
   const words=raw.split(/\s+/);
@@ -272,30 +303,22 @@ async function showIdCard(i){
  const blob=await ensureCard(i);if(!blob)return;
  const box=document.getElementById('prev'+i);if(!box)return;
  box.innerHTML='<img alt="Voter ID card" src="'+hits[i]._url+'" style="width:100%;max-width:560px;border-radius:12px;display:block;margin-top:8px">'+
-  '<div class="actions" style="margin-top:8px"><button class="pri sm" type="button" onclick="downloadCard('+i+')">Download card</button>'+
-  '<button class="wa sm" type="button" onclick="shareCard('+i+')">Share card on WhatsApp</button></div>';
+  '<div class="actions" style="margin-top:8px"><button class="pri sm" type="button" onclick="downloadCard('+i+')">Download card</button></div>';
 }
 async function downloadCard(i){
  const blob=await ensureCard(i);if(!blob)return;
- const a=document.createElement('a');a.href=hits[i]._url;a.download='my-voter-details.png';a.click();
-}
-async function shareCard(i){
- const blob=await ensureCard(i);if(!blob)return;
- const file=new File([blob],'my-voter-details.png',{type:'image/png'});
- if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});return}catch(e){if(e.name==='AbortError')return}}
- const a=document.createElement('a');a.href=hits[i]._url;a.download='my-voter-details.png';a.click();
- $('smsg').textContent='Image saved. Open WhatsApp and send this photo.';
+ const a=document.createElement('a');a.href=hits[i]._url;a.download='voter-id-card.png';a.click();
 }
 async function search(p=1){page=p;$('smsg').textContent='';
  const q=new URLSearchParams({type:mode,session_id:sid,page:p});
  if(mode=='epic')q.set('epic',$('epic').value);else{q.set('name',$('name').value);if($('div').value)q.set('division_id',$('div').value)}
  try{const r=await api('/api/public/search?'+q);hits=r.results||[];
-  const field=(k,val)=>`<div class="line"><span>${k}</span><strong>${esc(val||'—')}</strong></div>`;
+  const field=(k,val,cls)=>`<div class="line ${cls}"><span>${k}</span><strong>${esc(val||'—')}</strong></div>`;
   let h=`<div class="status">${esc(r.status)} (${r.total})</div>`;
   if(!hits.length)h+='<p class="note">No matching record.</p>';
   hits.forEach((v,i)=>{
-   h+=`<article class="voter"><h3>${esc(v.voter_name||'—')}</h3>${field('EPIC no',v.epic_number)}
-   ${field('Relative name',v.relative_name)}${field('Age',v.age)}
+   h+=`<article class="voter"><h3>${esc(v.voter_name||'—')}</h3>${field('EPIC no',v.epic_number,'f-epic')}
+   ${field('Relative name',v.relative_name,'f-rel')}${field('Age',v.age,'f-age')}
    <div class="actions"><button class="pri sm" type="button" onclick="showIdCard(${i})">Show ID card</button></div>
    <div id="prev${i}"></div></article>`;
   });
