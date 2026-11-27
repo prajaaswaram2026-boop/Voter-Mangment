@@ -1,0 +1,17 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+pdfplumber>=0.11
+pyjwt>=2.8
+bcrypt>=4.1
+cryptography>=42
+python-multipart>=0.0.9
+rapidfuzz>=3.6
+httpx>=0.27
+pytest>=8
+# Scanned electoral-roll PDFs on Windows (no Tesseract required):
+winocr>=0.0.15; sys_platform == "win32"
+# Render / Linux image also needs the tesseract-ocr binary (apt install tesseract-ocr).
+pytesseract>=0.3.10
+openpyxl>=3.1

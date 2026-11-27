@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voter Roll</title>
+<style>
+:root{--blue:#1a3d7c;--bg:#f4f6fa;--line:#d9dee8}
+*{box-sizing:border-box}body{margin:0;font:16px/1.45 system-ui,sans-serif;background:var(--bg);color:#1c2430}
+header{background:var(--blue);color:#fff;padding:12px}
+header h1{font-size:18px;margin:0 0 8px}
+.nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nav button,button.pri,button.wa,button.sm{width:100%;min-height:44px;border-radius:8px;font:inherit}
+.nav button{background:transparent;color:#fff;border:1px solid #fff8}
+.nav button.on{background:#fff;color:var(--blue)}
+main{padding:10px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.banner{display:block;width:100%;border-radius:12px;margin-bottom:10px}
+input,select{width:100%;padding:12px;border:1px solid #b9c1d0;border-radius:8px;margin:4px 0 10px;font:inherit}
+button.pri{background:var(--blue);color:#fff;border:0}
+button.wa{background:#128C7E;color:#fff;border:0}
+button.sm{background:#fff;border:1px solid var(--line)}
+.actions{display:grid;gap:8px;margin-top:8px}
+.note{font-size:13px;color:#566}.err{color:#b00020}.ok{color:#116b2e}
+.voter{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:8px;padding:8px 12px 14px;margin:10px 0}
+.voter h3{margin:8px 0;color:#10245a}
+.line{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:6px 0;padding:8px 10px;border-radius:8px}
+.line span{color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:4px 8px;width:fit-content}
+.line strong{color:#10245a;font-size:17px}
+.line,.line.f-epic,.line.f-rel,.line.f-age,.line.f-addr,.line.f-mob{background:#f7f8fb}
+.line span,.line.f-epic span,.line.f-rel span,.line.f-age span,.line.f-addr span,.line.f-mob span{background:transparent;color:#5c6b7a}
+.line strong{color:#10245a}
+.voter h3{background:#10245a;color:#fff;padding:10px 12px;border-radius:8px}
+.line span{color:#5a6577;font-size:13px}
+.booths{display:grid;gap:8px}
+.booths button{text-align:left;background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:8px;padding:12px}
+.booths button.on{background:#eef2fa}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat div{background:#eef2fa;border-radius:8px;padding:10px}
+.stat strong{display:block;font-size:22px}
+.mood-favour{color:#1b7f3a}.mood-unfavour{color:#c62828}.mood-neutral{color:#5c6b7a}.mood-undecided{color:#b8860b}.mood-not_met{color:#8a6a2f}
+.hide{display:none}
+</style></head><body>
+<header><h1 id="title">Voter Roll</h1><div class="nav"><button id="nav-cit" class="on" type="button">Search</button><button id="nav-vol" type="button">Volunteer</button></div></header>
+<main>
+<p id="syncbar" class="note">Not updated yet.</p>
+<section id="setup" class="panel"><h3>Client code</h3><p class="note">Enter the code the server admin created for this phone.</p>
+<label>Code<input id="code" autocapitalize="characters"></label><button class="pri" id="saveCode" type="button">Save and update</button> <span id="setupmsg" class="err"></span></section>
+<section id="citizen">
+ <img id="banner" class="banner" alt="">
+ <div class="panel"><h3>Find your voter details</h3>
+  <label>Full name</label><input id="name">
+  <label>Division</label><select id="div"><option value="">All</option></select>
+  <label>EPIC number</label><input id="epic" placeholder="Optional" maxlength="10">
+  <button class="pri" id="go" type="button">Search</button> <span id="smsg" class="err"></span>
+ </div>
+ <div id="results"></div>
+</section>
+<section id="volunteer" class="hide">
+ <div id="vlogin" class="panel"><h3>Volunteer login</h3>
+  <label>Mobile number</label><input id="vmobile" inputmode="numeric" maxlength="14">
+  <button class="pri" id="vlog" type="button">Log in</button> <span id="volmsg" class="err"></span></div>
+ <div id="vhome" class="hide"><div class="panel">
+  <h3 id="vname">Volunteer</h3><p id="vwho" class="note"></p>
+  <div id="vbooths"></div><div id="vroll"></div>
+  <button class="sm" id="vout" type="button">Log out</button>
+ </div></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MOODS=[['','Not marked'],['favour','Favour'],['unfavour','Unfavour'],['neutral','Neutral'],['undecided','Undecided'],['not_met','Not met']];
+function serverBase(){
+ let base='';
+ try{if(window.AndroidHost)base=AndroidHost.server()||''}catch(e){}
+ base=(base||location.origin||'').replace(/\/m\/?$/,'');
+ return base.replace(/\/$/,'');
+}
+function loadPack(){try{return JSON.parse(localStorage.getItem('vr-pack')||'null')}catch(e){return null}}
+function savePack(p){localStorage.setItem('vr-pack',JSON.stringify(p))}
+let pack=loadPack(), vol=null;
+function digits(s){return String(s||'').replace(/\D/g,'')}
+function phone10(s){let d=digits(s);if(d.length===12&&d.startsWith('91'))d=d.slice(2);if(d.length===11&&d.startsWith('0'))d=d.slice(1);return d.length===10?d:d}
+function showBar(){
+ const when=pack&&pack.updated_at?pack.updated_at.replace('T',' '):'not yet';
+ $('syncbar').textContent=(navigator.onLine?'Online':'Offline')+' · '+(pack?pack.client.name+' · '+pack.client.division:'No client data')+' · Updated '+when;
+}
+function applyDivisions(){
+ $('div').innerHTML='<option value="">All</option>'+((pack&&pack.divisions)||[]).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('');
+ const b=$('banner'); if(b)b.src=location.protocol==='file:'?'banner.jpg':((serverBase()||'')+'/static/banner.jpg');
+}
+async function flushQueue(){
+ const q=JSON.parse(localStorage.getItem('vr-queue')||'[]'); if(!q.length)return;
+ const left=[];
+ for(const item of q){
+  try{const r=await fetch(serverBase()+'/api/mobile/marks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});
+   if(!r.ok)left.push(item)}catch(e){left.push(item)}
+ }
+ localStorage.setItem('vr-queue',JSON.stringify(left));
+}
+async function syncNow(){
+ const code=localStorage.getItem('vr-code')||'';
+ if(!code){$('setup').classList.remove('hide');return}
+ $('setup').classList.add('hide');
+ if(!navigator.onLine){showBar();return}
+ try{
+  await flushQueue();
+  const r=await fetch(serverBase()+'/api/mobile/sync?code='+encodeURIComponent(code));
+  const t=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(t.detail||'Update failed');
+  pack=t; savePack(pack); applyDivisions(); showBar();
+ }catch(e){$('setupmsg').textContent=e.message; if(!pack)$('setup').classList.remove('hide'); showBar()}
+}
+$('saveCode').onclick=()=>{const c=$('code').value.trim(); if(c.length<4){$('setupmsg').textContent='Enter the client code';return} localStorage.setItem('vr-code',c.toUpperCase()); syncNow()};
+$('nav-cit').onclick=()=>{$('citizen').classList.remove('hide');$('volunteer').classList.add('hide');$('nav-cit').classList.add('on');$('nav-vol').classList.remove('on')};
+$('nav-vol').onclick=()=>{$('volunteer').classList.remove('hide');$('citizen').classList.add('hide');$('nav-vol').classList.add('on');$('nav-cit').classList.remove('on')};
+function localHits(){
+ const name=$('name').value.trim().toLowerCase(), epic=$('epic').value.trim().toUpperCase(), div=$('div').value;
+ let rows=(pack&&pack.voters)||[];
+ if(div)rows=rows.filter(v=>String(v.division_id)===div);
+ if(epic)rows=rows.filter(v=>(v.epic_number||'').toUpperCase().includes(epic));
+ else if(name.length>=3)rows=rows.filter(v=>(v.voter_name||'').toLowerCase().includes(name));
+ else return null;
+ return rows.slice(0,30);
+}
+const template=new Image();
+function cardSrc(){return location.protocol==='file:'?'voter-card.jpg':(serverBase()+'/static/voter-card.jpg')}
+template.src=cardSrc();
+function fit(ctx,text,max){let s=String(text??'—');while(s.length>1&&ctx.measureText(s).width>max)s=s.slice(0,-2)+'…';return s}
+async function drawCard(v){
+ const img=template.complete&&template.naturalWidth?template:await new Promise(ok=>{template.onload=()=>ok(template);template.src=cardSrc()});
+ const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+ const x=c.getContext('2d');x.drawImage(img,0,0);
+ x.fillStyle='#10245a';x.font='700 22px "Segoe UI",sans-serif';x.textBaseline='middle';
+ [v.epic_number,v.voter_name,v.relative_name,v.age,v.gender].forEach((val,i)=>x.fillText(fit(x,val,240),700,[256,311,371,429,481][i]));
+ x.fillText(fit(x,v.address,200),700,541);
+ x.fillText(fit(x,v.polling_station,200),700,604);
+ x.fillText(fit(x,v.booth_no,90),700,664);
+ x.fillText(fit(x,Number(v.serial_number)>0?String(v.serial_number):'—',90),700,727);
+ return new Promise(ok=>c.toBlob(ok,'image/png'));
+}
+let hits=[];
+$('go').onclick=()=>{
+ $('smsg').textContent='';
+ if(!pack){$('smsg').textContent='Update from the server first';return}
+ hits=localHits();
+ if(hits===null){$('smsg').textContent='Enter a name of at least 3 letters, or an EPIC number';return}
+ const field=(k,val,cls)=>`<div class="line ${cls}"><span>${k}</span><strong>${esc(val||'—')}</strong></div>`;
+ $('results').innerHTML=`<p class="note">${hits.length} shown</p>`+hits.map((v,i)=>`<article class="voter"><h3>${esc(v.voter_name)}</h3>${field('EPIC no',v.epic_number,'f-epic')}${field('Relative name',v.relative_name,'f-rel')}${field('Age',v.age,'f-age')}${field('Address',v.address,'f-addr')}<button class="pri" type="button" onclick="showCard(${i})">Show ID card</button><div id="card${i}"></div></article>`).join('')||'<p class="note">No matching record.</p>';
+};
+async function showCard(i){
+ const blob=await drawCard(hits[i]); if(!blob)return;
+ hits[i]._blob=blob; hits[i]._url=URL.createObjectURL(blob);
+ $('card'+i).innerHTML='<img alt="Voter ID card" src="'+hits[i]._url+'" style="width:100%;border-radius:12px"><div class="actions"><button class="pri" type="button" onclick="downloadCard('+i+')">Download card</button></div>';
+}
+function downloadCard(i){
+ const v=hits[i]; if(!v||!v._url)return;
+ const a=document.createElement('a'); a.href=v._url; a.download='voter-id-card.png'; a.click();
+}
+function findVolunteer(mobile){
+ const d=phone10(mobile);
+ return ((pack&&pack.volunteers)||[]).find(v=>phone10(v.mobile)===d);
+}
+$('vlog').onclick=()=>{
+ vol=findVolunteer($('vmobile').value);
+ if(!vol){$('volmsg').textContent='This mobile number is not in the downloaded data';return}
+ $('vlogin').classList.add('hide'); $('vhome').classList.remove('hide');
+ $('vname').textContent=vol.name; $('vwho').textContent=vol.mobile;
+ $('vbooths').innerHTML='<div class="booths">'+vol.booths.map((b,i)=>`<button type="button" onclick="openBooth(${i})"><b>${esc(b.number)}</b><br>${esc(b.name||'')}</button>`).join('')+'</div>';
+ $('vroll').innerHTML='';
+};
+$('vout').onclick=()=>{vol=null;$('vhome').classList.add('hide');$('vlogin').classList.remove('hide')};
+function openBooth(i){
+ const b=vol.booths[i];
+ [...$('vbooths').querySelectorAll('button')].forEach((el,n)=>el.classList.toggle('on',n===i));
+ boothRows=((pack&&pack.voters)||[]).filter(v=>v.station_id===b.id);
+ const rows=boothRows;
+ const counts={favour:0,unfavour:0,neutral:0,undecided:0,not_met:rows.length};
+ rows.forEach(v=>{if(v.mood&&v.mood!=='not_met'&&counts[v.mood]!==undefined){counts[v.mood]++;counts.not_met--}});
+ let h=`<h3>${esc(b.number)} · ${esc(b.name||'')} (${rows.length})</h3><div class="stat">${[['favour','Favour'],['unfavour','Unfavour'],['neutral','Neutral'],['undecided','Undecided'],['not_met','Not met']].map(([k,lab])=>`<div class="mood-${k}"><strong>${counts[k]||0}</strong>${lab}</div>`).join('')}</div>`;
+ h+=`<label>Search</label><input id="vq" placeholder="EPIC, name or address"><button class="pri" type="button" onclick="filterBooth(${i})">Search</button>`;
+ h+=renderVoters(rows,i);
+ $('vroll').innerHTML=h;
+}
+function renderVoters(rows,boothIndex){
+ const field=(k,val,cls)=>`<div class="line ${cls}"><span>${k}</span><strong>${esc(val||'—')}</strong></div>`;
+ return rows.slice(0,40).map((v,n)=>`<article class="voter"><h3>${esc(v.voter_name)}</h3>${field('EPIC no',v.epic_number,'f-epic')}${field('Relative name',v.relative_name,'f-rel')}${field('Age',v.age,'f-age')}${field('Address',v.address,'f-addr')}${field('Mobile',v.mobile||'Not available','f-mob')}
+  <label>Mobile<input id="vmob${n}" value="${esc(v.mobile||'')}" inputmode="numeric"></label>
+  <label>Electoral Mood<select id="vmood${n}">${MOODS.map(([k,lab])=>`<option value="${k}" ${v.mood===k?'selected':''}>${lab}</option>`).join('')}</select></label>
+  <div class="actions"><button class="pri" type="button" onclick="saveMood(${boothIndex},${n})">Save</button><span id="vmark${n}" class="ok"></span></div></article>`).join('');
+}
+let boothRows=[];
+function filterBooth(i){
+ const q=($('vq').value||'').trim().toLowerCase();
+ const b=vol.booths[i];
+ boothRows=((pack&&pack.voters)||[]).filter(v=>v.station_id===b.id&&(!q||(v.voter_name||'').toLowerCase().includes(q)||(v.epic_number||'').toLowerCase().includes(q)||(v.address||'').toLowerCase().includes(q)));
+ const box=$('vroll');
+ const cards=box.querySelectorAll('article');
+ cards.forEach(el=>el.remove());
+ box.insertAdjacentHTML('beforeend', renderVoters(boothRows,i));
+}
+async function saveMood(i,n){
+ const b=vol.booths[i];
+ const rows=((pack&&pack.voters)||[]).filter(v=>v.station_id===b.id);
+ const v=boothRows.length?boothRows[n]:rows[n];
+ if(!v)return;
+ v.mobile=$('vmob'+n).value.trim(); v.mood=$('vmood'+n).value;
+ savePack(pack);
+ const item={code:localStorage.getItem('vr-code'),volunteer_mobile:vol.mobile,voter_id:v.id,mobile:v.mobile,mood:v.mood};
+ try{
+  const r=await fetch(serverBase()+'/api/mobile/marks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)});
+  if(!r.ok)throw new Error((await r.json().catch(()=>({}))).detail||'Not sent');
+  $('vmark'+n).textContent='Saved on server';
+ }catch(e){
+  const q=JSON.parse(localStorage.getItem('vr-queue')||'[]'); q.push(item); localStorage.setItem('vr-queue',JSON.stringify(q));
+  $('vmark'+n).textContent='Saved on this phone. It will update the server when online.';
+ }
+}
+window.addEventListener('online',syncNow);
+if(localStorage.getItem('vr-code')){$('code').value=localStorage.getItem('vr-code');applyDivisions();showBar();syncNow()}
+else showBar();
+</script></body></html>
